@@ -1,0 +1,19 @@
+name: 'Citadel 2.0 Deployment'
+on: [push]
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: hashicorp/setup-terraform@v2
+      - run: terraform fmt -check
+      - run: terraform validate
+      - run: terraform plan -out=tfplan
+
+  apply:
+    needs: plan
+    environment: production_gate # THE FIX: Requires a human to click 'Approve'
+    runs-on: ubuntu-latest
+    steps:
+      - run: terraform apply tfplan
