@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
     resource_group_name  = "rg-citadel-mgmt-can"
-    storage_account_name = "stcitadelstatedev01" 
+    storage_account_name = "stcitadelstatedev01"
     container_name       = "tfstate"
     key                  = "citadel.prod.tfstate"
     use_azuread_auth     = true
@@ -30,10 +30,10 @@ module "network" {
 
 # 5.(Storage Module)
 module "storage" {
-  source        = "../../modules/storage"
-  rg_name       = azurerm_resource_group.rg.name
-  location      = azurerm_resource_group.rg.location
-  pe_subnet_id  = module.network.compute_subnet_id 
+  source       = "../../modules/storage"
+  rg_name      = azurerm_resource_group.rg.name
+  location     = azurerm_resource_group.rg.location
+  pe_subnet_id = module.network.compute_subnet_id
 }
 
 # 6.(App Service Plan)
@@ -42,7 +42,7 @@ resource "azurerm_service_plan" "plan" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
-  sku_name            = "P1v2" 
+  sku_name            = "P1v2"
 }
 
 # 7.(Compute Module)
