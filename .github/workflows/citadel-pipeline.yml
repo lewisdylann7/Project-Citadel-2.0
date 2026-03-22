@@ -1,19 +1,74 @@
 name: 'Citadel 2.0 Deployment'
-on: [push]
+
+on:
+  push:
+    branches: [ main ] 
+
+env:
+ 
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+ 
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
 jobs:
   plan:
+    name: 'Terraform Plan'
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./environments/prod # Points to your City Planner
+
     steps:
-      - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v2
-      - run: terraform fmt -check
-      - run: terraform validate
-      - run: terraform plan -out=tfplan
+      - name: Checkout Code
+        uses: actions/checkout@v4 # Updated to v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3 # Updated to v3
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Format Check
+        run: terraform fmt -check
+
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+    
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: environments/prod/tfplan
 
   apply:
+    name: 'Terraform Apply'
     needs: plan
-    environment: production_gate # THE FIX: Requires a human to click 'Approve'
+    if: github.ref == 'refs/heads/main' # Only apply if on main branch
+    environment: production_gate        
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./environments/prod
+
     steps:
-      - run: terraform apply tfplan
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: environments/prod
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Apply
+        run: terraform apply -auto-approve tfplan

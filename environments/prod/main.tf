@@ -1,7 +1,7 @@
 terraform {
   backend "azurerm" {
     resource_group_name  = "rg-citadel-mgmt-can"
-    storage_account_name = "stcitadelstateprod01" 
+    storage_account_name = "stcitadelstatedev01" 
     container_name       = "tfstate"
     key                  = "citadel.prod.tfstate"
     use_azuread_auth     = true
